@@ -1,5 +1,5 @@
-#ifndef _DOUBLE_BLOCK_H
-#define _DOUBLE_BLOCK_H
+#ifndef _TLOCK_QUEUE_H
+#define _TLOCK_QUEUE_H
 
 #include <threads.h>
 
