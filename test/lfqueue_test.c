@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include <threads.h>
 
 #include "lfqueue.h"
@@ -40,7 +38,7 @@ int pop_thread(void* queue_ptr) {
 	lfqueue_t* queue = (lfqueue_t*) queue_ptr;
 	int* popped_value;
 
-	while(true) {
+	while(1) {
 		if ( (popped_value = lfqueue_deq(queue)) != NULL ) {
 
 			if (*popped_value == -1) {
