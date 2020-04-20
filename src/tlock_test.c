@@ -42,7 +42,7 @@ int pop_thread(void* queue_ptr) {
 			}
 
 			free(popped_value);
-		} 
+		}
 	}
 
 	thrd_exit(0);

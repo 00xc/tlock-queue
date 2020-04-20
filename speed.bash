@@ -17,10 +17,10 @@ for push in "${push_threads[@]}"; do
 
 		# Compile and run both tests
 		sh make.sh
-		dblock=$({ time ./bin/tlock_queue; } 2>&1 | grep real | awk '{print $2}')
+		tlock=$({ time ./bin/tlock_queue; } 2>&1 | grep real | awk '{print $2}')
 		lfqueue=$({ time ./bin/lfqueue; } 2>&1 | grep real | awk '{print $2}')
 
-		echo "push threads: ${push}, pop threads: ${pop}, tlock=${dblock}, lfqueue=${lfqueue}"
+		echo "push threads: ${push}, pop threads: ${pop}, tlock=${tlock}, lfqueue=${lfqueue}"
 
 	done
 done

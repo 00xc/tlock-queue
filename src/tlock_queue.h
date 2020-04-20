@@ -24,6 +24,6 @@ void tlock_free(tlock_queue_t* queue);
 
 /* Add and remove elements from queue */
 int tlock_push(tlock_queue_t* queue, void* new_element);
-void* tlock_pop(tlock_queue_t* queue) ;
+void* tlock_pop(tlock_queue_t* queue);
 
 #endif

@@ -3,14 +3,14 @@
 #include "tlock_queue.h"
 
 /* Allocates and initializes queue node */
-inline static _tlock_node_t* _tlock_node_init(void* value, _tlock_node_t* next) {
+inline static _tlock_node_t* _tlock_node_init(void* value) {
 	_tlock_node_t* node;
 
 	if ( (node = malloc(sizeof(_tlock_node_t))) == NULL )
 		return NULL;
 
 	node->value = value;
-	node->next = next;
+	node->next = NULL;
 
 	return node;
 }
@@ -47,14 +47,13 @@ tlock_queue_t* tlock_init() {
 	}
 
 	/* Allocate dummy node */
-	if ( (free_node = _tlock_node_init(NULL, NULL)) == NULL ) {
+	if ( (free_node = _tlock_node_init(NULL)) == NULL ) {
 		tlock_free(queue);
 		return NULL;
 	}
 
 	/* Initialize ends of queue */
-	queue->first = free_node;
-	queue->last = free_node;
+	queue->first = queue->last = free_node;
 
 	return queue;
 }
@@ -85,7 +84,7 @@ int tlock_push(tlock_queue_t* queue, void* new_element) {
 	_tlock_node_t* node;
 
 	/* Prepare new node */
-	if ( (node = _tlock_node_init(new_element, NULL)) == NULL )
+	if ( (node = _tlock_node_init(new_element)) == NULL )
 		return PUSH_FAILURE;
 
 	/* Add to queue with lock */
