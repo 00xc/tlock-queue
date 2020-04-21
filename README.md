@@ -8,6 +8,7 @@ This repository includes an example use in [tlock_test.c](src/tlock_test.c). To 
 * Adding elements to queue: `tlock_push()`
 * Remove element from queue: `tlock_pop()`
 * Free queue: `tlock_free()`
+* Get minimum number of elements in queue at function call: `tlock_length()`
 
 ## Speed ##
 The main example file, [tlock_test.c](src/tlock_test.c), fires up several push and pop threads (threads writing into or reading from queue respectively), and adds one million integers into the queue from each push thread.

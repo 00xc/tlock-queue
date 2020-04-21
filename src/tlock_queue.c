@@ -123,3 +123,27 @@ void* tlock_pop(tlock_queue_t* queue) {
 	_tlock_node_free(node);
 	return return_value;
 }
+
+long long tlock_length(tlock_queue_t* queue){
+
+	long long int counter = 0;
+	_tlock_node_t* node;
+
+	mtx_lock(queue->first_mutex);
+
+	/* Get first element if queue is not empty */
+	if ( (node = queue->first->next) != NULL ) {
+		++counter;
+	}
+
+	/* Count the rest of elements */
+	while (node!=NULL && node->next!=NULL){
+		++counter;
+		node = node->next;
+	}
+
+	mtx_unlock(queue->first_mutex);
+
+	return counter;
+
+}

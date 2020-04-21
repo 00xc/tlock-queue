@@ -92,7 +92,6 @@ int main() {
 
 	/* Free queue resources */
 	tlock_free(queue);
-
 	return 0;
 }
 
