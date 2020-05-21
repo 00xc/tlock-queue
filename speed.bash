@@ -16,7 +16,7 @@ for push in "${push_threads[@]}"; do
 		sed -i "s/NUM_POP_THREADS .*/NUM_POP_THREADS ${pop}/g" src/tlock_test.c
 
 		# Compile and run both tests
-		sh make.sh
+		make all > /dev/null
 		tlock=$({ time ./bin/tlock_queue; } 2>&1 | grep real | awk '{print $2}')
 		lfqueue=$({ time ./bin/lfqueue; } 2>&1 | grep real | awk '{print $2}')
 

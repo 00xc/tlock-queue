@@ -19,7 +19,7 @@ int push_thread(void* queue_ptr) {
 	for (i=0; i<NUMS; ++i) {
 		pushed_value = malloc(sizeof(int));
 		*pushed_value = i;
-		if (tlock_push(queue, pushed_value) != PUSH_OK ) {
+		if (tlock_push(queue, pushed_value) != TLOCK_OK ) {
 			printf("Error pushing element %i\n", i);
 		}
 	}
