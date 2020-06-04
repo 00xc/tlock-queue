@@ -14,6 +14,10 @@ test: test/*.c
 shared: src/tlock_queue.c
 	$(CC) $(CFLAGS) $(SO_FLAGS) $(LDFLAGS) $^ -o bin/tlock_queue.so
 
+static: src/tlock_queue.c
+	gcc -c $^ -o bin/tlock_queue.o
+	ar rcs bin/tlock_queue.a bin/tlock_queue.o
+
 all: tlock test shared
 
 clean:
