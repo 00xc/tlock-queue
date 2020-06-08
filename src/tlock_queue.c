@@ -1,11 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tlock_queue.h"
+#ifndef __STDC_NO_THREADS__
 
-#ifdef __STDC_NO_THREADS__
-	#error "No C11 threads support found"
-#endif
+#include "tlock_queue.h"
 
 /* Allocates and initializes queue node */
 inline static _tlock_node_t* _tlock_node_init(void* value) {
@@ -180,3 +178,7 @@ size_t tlock_min_size(tlock_queue_t* queue){
 
 	return counter;
 }
+
+#else
+	#pragma message ( "No C11 thread support" )
+#endif
