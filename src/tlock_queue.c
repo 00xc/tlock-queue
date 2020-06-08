@@ -3,6 +3,10 @@
 
 #include "tlock_queue.h"
 
+#ifdef __STDC_NO_THREADS__
+	#error "No C11 threads support found"
+#endif
+
 /* Allocates and initializes queue node */
 inline static _tlock_node_t* _tlock_node_init(void* value) {
 	_tlock_node_t* node;

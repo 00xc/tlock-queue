@@ -1,8 +1,6 @@
 #include <stdio.h>
-
-#ifndef __STDC_NO_THREADS__
-
 #include <stdlib.h>
+
 #include "tlock_queue.h"
 
 #define NUM_PUSH_THREADS 4
@@ -94,12 +92,3 @@ int main() {
 	tlock_free(queue);
 	return 0;
 }
-
-#else
-
-int main() {
-	printf("C11 threads are not supported on this system.\n");
-	return 1;
-}
-
-#endif
