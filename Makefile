@@ -5,14 +5,16 @@ LDFLAGS=-lpthread
 BIN_FLAGS=-fPIE
 SO_FLAGS=-fPIC -shared
 
+.PHONY: all tlock test shared static clean
+
 tlock: src/*.c
-	$(CC) $(CFLAGS) $(BIN_FLAGS) $(LDFLAGS) $^ -o bin/tlock_queue
+	$(CC) $(CFLAGS) $(BIN_FLAGS) $^ $(LDFLAGS) -o bin/tlock_queue
 
 test: test/*.c
-	$(CC) $(CFLAGS) $(BIN_FLAGS) $(LDFLAGS) $^ -o bin/lfqueue
+	$(CC) $(CFLAGS) $(BIN_FLAGS) $^ $(LDFLAGS) -o bin/lfqueue
 
 shared: src/tlock_queue.c
-	$(CC) $(CFLAGS) $(SO_FLAGS) $(LDFLAGS) $^ -o bin/tlock_queue.so
+	$(CC) $(CFLAGS) $(SO_FLAGS) $^ $(LDFLAGS) -o bin/tlock_queue.so
 
 static: src/tlock_queue.c
 	$(CC) $(CFLAGS) -c $^ -o bin/tlock_queue.o

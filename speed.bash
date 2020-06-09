@@ -22,6 +22,5 @@ for push in "${push_threads[@]}"; do
 		lfqueue=$({ time ./bin/lfqueue; } 2>&1 | grep real | awk '{print $2}')
 
 		echo "push threads: ${push}, pop threads: ${pop}, tlock=${tlock}, lfqueue=${lfqueue}"
-
 	done
 done

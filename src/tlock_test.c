@@ -4,7 +4,7 @@
 #include "tlock_queue.h"
 
 #define NUM_PUSH_THREADS 4
-#define NUM_POP_THREADS 6
+#define NUM_POP_THREADS 4
 #define NUMS 1000000
 
 /* This thread writes integers into the queue */

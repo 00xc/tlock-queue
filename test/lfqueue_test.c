@@ -5,7 +5,7 @@
 #include "lfqueue.h"
 
 #define NUM_PUSH_THREADS 4
-#define NUM_POP_THREADS 6
+#define NUM_POP_THREADS 4
 #define NUMS 1000000
 
 /* This thread writes integers into the queue */
@@ -14,20 +14,13 @@ int push_thread(void* queue_ptr) {
 	int* pushed_value;
 	int i;
 
-	/* Push numbers into queue */
+	/* Push ints into queue */
 	for (i=0; i<NUMS; ++i) {
 		pushed_value = malloc(sizeof(int));
 		*pushed_value = i;
 		if (lfqueue_enq(queue, pushed_value) == -1 ) {
 			printf("Error pushing element %i\n", i);
 		}
-	}
-
-	/* Push kill signals */
-	for (i=0; i<NUM_POP_THREADS; ++i) {
-		pushed_value = malloc(sizeof(int));
-		*pushed_value = -1;
-		lfqueue_enq(queue, pushed_value);
 	}
 
 	thrd_exit(0);
@@ -38,6 +31,7 @@ int pop_thread(void* queue_ptr) {
 	lfqueue_t* queue = (lfqueue_t*) queue_ptr;
 	int* popped_value;
 
+	/* Read values from queue. Break loop on -1 */
 	while(1) {
 		if ( (popped_value = lfqueue_deq(queue)) != NULL ) {
 
@@ -47,7 +41,7 @@ int pop_thread(void* queue_ptr) {
 			}
 
 			free(popped_value);
-		} 
+		}
 	}
 
 	thrd_exit(0);
@@ -57,6 +51,7 @@ int main() {
 	int i;
 	thrd_t push_threads[NUM_PUSH_THREADS];
 	thrd_t pop_threads[NUM_POP_THREADS];
+	int* kill_signal;
 
 	/* Init queue */
 	lfqueue_t queue;
@@ -77,11 +72,20 @@ int main() {
 		}
 	}
 
-	/* Join threads */
+	/* Join push threads */
 	for (i=0; i<NUM_PUSH_THREADS; ++i) {
 		if ( thrd_join(push_threads[i], NULL) != thrd_success )
 			continue;
 	}
+
+	/* Push kill signals */
+	for (i=0; i<NUM_POP_THREADS; ++i) {
+		kill_signal = malloc(sizeof(int));
+		*kill_signal = -1;
+		lfqueue_enq(&queue, kill_signal);
+	}
+
+	/* Join pop threads */
 	for (i=0; i<NUM_POP_THREADS; ++i) {
 		if ( thrd_join(pop_threads[i], NULL) != thrd_success )
 			continue;
