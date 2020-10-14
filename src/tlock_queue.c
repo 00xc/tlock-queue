@@ -5,7 +5,10 @@
 
 #include "tlock_queue.h"
 
-/* Allocates and initializes queue node */
+/* Helper function to allocate and initialize a queue node */
+#ifdef __GNUC__
+__attribute__ ((malloc))
+#endif
 inline static _tlock_node_t* _tlock_node_init(void* value) {
 	_tlock_node_t* node;
 
@@ -23,10 +26,13 @@ inline static void _tlock_node_free(_tlock_node_t* node) {
 	free(node);
 }
 
-/* Initializes queue */
+/* Allocates and initializes queue */
+#ifdef __GNUC__
+__attribute__ ((malloc))
+#endif
 tlock_queue_t* tlock_init() {
 	tlock_queue_t* queue;
-	_tlock_node_t* free_node;
+	_tlock_node_t* dummy;
 
 	/* Allocate queue */
 	if ( (queue = malloc(sizeof(tlock_queue_t))) == NULL )
@@ -50,19 +56,22 @@ tlock_queue_t* tlock_init() {
 	}
 
 	/* Allocate dummy node */
-	if ( (free_node = _tlock_node_init(NULL)) == NULL ) {
+	if ( (dummy = _tlock_node_init(NULL)) == NULL ) {
 		tlock_free(queue);
 		return NULL;
 	}
 
 	/* Initialize ends of queue */
-	queue->first = queue->last = free_node;
+	queue->first = queue->last = dummy;
 
 	return queue;
 }
 
 /* Frees queue resources. Assumes the queue is depleted */
 void tlock_free(tlock_queue_t* queue) {
+
+	if (queue == NULL)
+		return;
 
 	/* Free the dummy node */
 	if (queue->first != NULL) {
@@ -83,7 +92,10 @@ void tlock_free(tlock_queue_t* queue) {
 }
 
 /* Push at the end of the queue */
-int tlock_push(tlock_queue_t* queue, void* new_element) {
+#ifdef __GNUC__
+__attribute__ ((warn_unused_result))
+#endif
+int tlock_push(tlock_queue_t* restrict queue, void* restrict new_element) {
 	_tlock_node_t* node;
 
 	/* Prepare new node */
@@ -102,7 +114,7 @@ int tlock_push(tlock_queue_t* queue, void* new_element) {
 /* Pop from beginning of queue */
 void* tlock_pop(tlock_queue_t* queue) {
 	_tlock_node_t* node;		/* Node to be removed */
-	_tlock_node_t* new_header;	/* Node that will be come the first in the queue */
+	_tlock_node_t* new_header;	/* Node that will become the first in the queue */
 	void* return_value;		/* Data to be retrieved */
 
 	mtx_lock(queue->first_mutex);
@@ -110,7 +122,7 @@ void* tlock_pop(tlock_queue_t* queue) {
 	node = queue->first;
 	new_header = queue->first->next;
 
-	/* Queue empty */
+	/* Queue is empty */
 	if (new_header == NULL) {
 		mtx_unlock(queue->first_mutex);
 		return NULL;
@@ -128,37 +140,11 @@ void* tlock_pop(tlock_queue_t* queue) {
 }
 
 /*
- * Copies the next element in the queue to 'location' and does not remove
- * it from the queue. The size of the element in the queue must be given.
+ * Retrieves the minimum number of elements in the queue at the time of function call. The number
+ * can be bigger if threads are pushing to the queue concurrently.
  */
-int tlock_see(tlock_queue_t* queue, void* location, size_t size) {
-	_tlock_node_t* header;
-
-	/* Lock queue and retrieve first node containing data */
-	mtx_lock(queue->first_mutex);
-	header = queue->first->next;
-
-	/* Queue empty */
-	if (header == NULL) {
-		mtx_unlock(queue->first_mutex);
-		return TLOCK_EMPTY;
-	}
-
-	/* Queue not empty: retrieve value and unlock queue */
-	memcpy(location, header->value, size);
-	mtx_unlock(queue->first_mutex);
-
-	return TLOCK_OK;
-}
-
-/*
- * Retrieves the minimum number of elements in the queue
- * at the time of function call. The number can be bigger
- * if threads are pushing to the queue concurrently.
- */
-size_t tlock_min_size(tlock_queue_t* queue){
-
-	long long int counter = 0;
+size_t tlock_min_size(const tlock_queue_t* queue){
+	register size_t counter = 0;
 	_tlock_node_t* node;
 
 	mtx_lock(queue->first_mutex);
@@ -169,7 +155,7 @@ size_t tlock_min_size(tlock_queue_t* queue){
 	}
 
 	/* Count the rest of elements */
-	while (node!=NULL && node->next!=NULL){
+	while (node!=NULL && node->next!=NULL) {
 		++counter;
 		node = node->next;
 	}
