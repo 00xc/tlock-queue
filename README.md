@@ -1,5 +1,4 @@
 # tlock-queue #
-
 tlock-queue is a simple, concurrent, multi-producer, multi-consumer queue implementation in pure C using [C11 threads' mutexes](https://en.cppreference.com/w/c/thread). It is based on the two lock queue presented by Maged M. Michael and Michael L. Scott in their paper titled [Simple, Fast, and Practical Non-Blocking and Blocking Concurrent Queue Algorithms](https://www.cs.rochester.edu/~scott/papers/1996_PODC_queues.pdf).
 
 ## Compiling and using ##

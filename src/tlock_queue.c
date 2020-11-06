@@ -12,8 +12,9 @@ __attribute__ ((malloc))
 inline static _tlock_node_t* _tlock_node_init(void* value) {
 	_tlock_node_t* node;
 
-	if ( (node = malloc(sizeof(_tlock_node_t))) == NULL )
+	if ( (node = malloc(sizeof(_tlock_node_t))) == NULL ) {
 		return NULL;
+	}
 
 	node->value = value;
 	node->next = NULL;
@@ -21,7 +22,7 @@ inline static _tlock_node_t* _tlock_node_init(void* value) {
 	return node;
 }
 
-/* Frees queue node */
+/* Helper function to free a queue node */
 inline static void _tlock_node_free(_tlock_node_t* node) {
 	free(node);
 }
@@ -70,8 +71,9 @@ tlock_queue_t* tlock_init() {
 /* Frees queue resources. Assumes the queue is depleted */
 void tlock_free(tlock_queue_t* queue) {
 
-	if (queue == NULL)
+	if (queue == NULL) {
 		return;
+	}
 
 	/* Free the dummy node */
 	if (queue->first != NULL) {
@@ -99,8 +101,9 @@ int tlock_push(tlock_queue_t* restrict queue, void* restrict new_element) {
 	_tlock_node_t* node;
 
 	/* Prepare new node */
-	if ( (node = _tlock_node_init(new_element)) == NULL )
+	if ( (node = _tlock_node_init(new_element)) == NULL ) {
 		return TLOCK_ERROR;
+	}
 
 	/* Add to queue with lock */
 	mtx_lock(queue->last_mutex);
@@ -143,7 +146,7 @@ void* tlock_pop(tlock_queue_t* queue) {
  * Retrieves the minimum number of elements in the queue at the time of function call. The number
  * can be bigger if threads are pushing to the queue concurrently.
  */
-size_t tlock_min_size(const tlock_queue_t* queue){
+size_t tlock_min_size(const tlock_queue_t* queue) {
 	register size_t counter = 0;
 	_tlock_node_t* node;
 
@@ -155,7 +158,7 @@ size_t tlock_min_size(const tlock_queue_t* queue){
 	}
 
 	/* Count the rest of elements */
-	while (node!=NULL && node->next!=NULL) {
+	while (node != NULL && node->next != NULL) {
 		++counter;
 		node = node->next;
 	}
