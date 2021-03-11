@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-std=c11 -Wall -Werror -Wpedantic -Wextra -O3 -flto
-LDFLAGS=-lpthread
+LDFLAGS=-Isrc -lpthread
 
 BIN_FLAGS=-fPIE
 SO_FLAGS=-fPIC -shared
@@ -8,16 +8,16 @@ SO_FLAGS=-fPIC -shared
 SHARED_LIB=libtlockqueue.so
 STATIC_LIB=libtlockqueue.a
 
-.PHONY: all tlock shared static clean
+.PHONY: all shared static clean
 
-tlock: src/tlock_test.c static
-	$(CC) $(CFLAGS) $(BIN_FLAGS) $< $(STATIC_LIB) $(LDFLAGS) -o test_program.bin
+all: test_program shared static
+
+test_program: examples/tlock_test.c $(STATIC_LIB)
+	$(CC) $(CFLAGS) $(BIN_FLAGS) $< $(STATIC_LIB) $(LDFLAGS) -o $@
 
 shared: $(SHARED_LIB)
 
 static: $(STATIC_LIB)
-
-all: tlock shared static
 
 $(SHARED_LIB): src/tlock_queue.c
 	$(CC) $(CFLAGS) $(SO_FLAGS) $^ $(LDFLAGS) -o $@
@@ -27,5 +27,6 @@ $(STATIC_LIB): src/tlock_queue.c
 	ar rcs $@ tlock_queue.o
 
 clean:
-	rm -f test_program.bin
-	rm -f tlock_queue.o $(SHARED_LIB) $(STATIC_LIB)
+	rm -f test_program
+	rm -f tlock_queue.o
+	rm -f $(SHARED_LIB) $(STATIC_LIB)
