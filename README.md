@@ -37,5 +37,5 @@ assert(*element == 420);
 
 /* Finally, free the element and the queue */
 free(element);
-free(queue);
+tlock_free(queue);
 ```
