@@ -6,19 +6,22 @@ To compile the test program ([tlock_test.c](src/tlock_test.c)) just run `make` o
 The following code illustrates the use of the public API.
 
 ```C
-tlock_queue_t* queue;
+tlock_queue_t queue;
 int* element;
+int rc;
 
 /* Allocate an element to be added to the queue */
 element = malloc(sizeof(int));
 *element = 420;
 
-/* Queue allocation and initialization. Returns NULL on error */
-if ( (queue = tlock_init()) == NULL)
+/* Queue initialization. Returns TLOCK_ERROR on error */
+rc = tlock_init(&queue);
+if (rc != TLOCK_OK)
 	handle_error();
 
 /* Add the element to the queue. Returns TLOCK_OK on success, TLOCK_ERROR on error */
-if (tlock_push(queue, element) != TLOCK_OK)
+rc = tlock_push(&queue, element);
+if (rc != TLOCK_OK)
 	handle_error();
 
 /*
@@ -26,10 +29,11 @@ if (tlock_push(queue, element) != TLOCK_OK)
  * a mininum guarantee, but the actual number of elements could be higher. It blocks `tlock_pop()`
  * calls on other threads, but not `tlock_push()` calls.
  */
-assert(tlock_min_size(queue) == 1);
+assert(tlock_min_size(&queue) == 1);
 
 /* Retrieve the element from the queue. Returns NULL on empty queue. */
-if ( (element = tlock_pop(queue)) == NULL)
+element = tlock_pop(&queue);
+if (!element)
 	handle_error();
 
 /* This assertion will never fail */

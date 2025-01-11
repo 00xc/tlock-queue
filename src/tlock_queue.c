@@ -25,42 +25,31 @@ inline static void _tlock_node_free(_tlock_node_t* node) {
 	free(node);
 }
 
-/* Allocates and initializes queue */
-#ifdef __GNUC__
-__attribute__ ((malloc))
-#endif
-tlock_queue_t* tlock_init() {
-	tlock_queue_t* queue;
+/* Initializes the given queue */
+int tlock_init(tlock_queue_t* queue) {
 	_tlock_node_t* dummy;
-
-	/* Allocate queue */
-	queue = malloc(sizeof(*queue));
-	if (queue == NULL)
-		goto err0;
 
 	/* Initialize mutexes */
 	if (mtx_init(&queue->first_mutex, mtx_plain) != thrd_success)
-		goto err1;
+		goto err0;
 	if (mtx_init(&queue->last_mutex, mtx_plain) != thrd_success)
-		goto err2;
+		goto err1;
 
 	/* Allocate dummy node */
 	dummy = _tlock_node_init(NULL);
 	if (!dummy)
-		goto err3;
+		goto err2;
 
 	/* Initialize ends of queue */
 	queue->first = queue->last = dummy;
-	return queue;
+	return TLOCK_OK;
 
-err3:
-	mtx_destroy(&queue->last_mutex);
 err2:
-	mtx_destroy(&queue->first_mutex);
+	mtx_destroy(&queue->last_mutex);
 err1:
-	free(queue);
+	mtx_destroy(&queue->first_mutex);
 err0:
-	return NULL;
+	return TLOCK_ERROR;
 }
 
 /* Frees queue resources. Assumes the queue is depleted */
@@ -73,8 +62,6 @@ void tlock_free(tlock_queue_t* queue) {
 
 	mtx_destroy(&queue->first_mutex);
 	mtx_destroy(&queue->last_mutex);
-
-	free(queue);
 }
 
 /* Push at the end of the queue */

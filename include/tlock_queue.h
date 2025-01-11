@@ -26,8 +26,11 @@ typedef struct {
 	mtx_t last_mutex;
 } tlock_queue_t;
 
-/* Returns a pointer to an allocated struct for the synchronized queue or NULL on failure. */
-tlock_queue_t* tlock_init();
+/*
+ * Initializes the given queue. Returns TLOCK_ERROR if intitialization
+ * could not be performed
+ */
+int tlock_init(tlock_queue_t*);
 
 /*
  * Frees the queue struct. It assumes that the queue is depleted, and it will not manage allocated
