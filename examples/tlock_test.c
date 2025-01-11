@@ -1,3 +1,4 @@
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,6 +8,8 @@
 #define NUM_POP_THREADS 4
 #define NUMS 1000000
 
+#define ARR_SIZE(_arr) (sizeof(_arr)/sizeof(_arr[0]))
+
 /* This thread writes integers into the queue */
 int push_thread(void* queue_ptr) {
 	tlock_queue_t* queue = (tlock_queue_t*) queue_ptr;
@@ -14,7 +17,7 @@ int push_thread(void* queue_ptr) {
 	int i;
 
 	/* Push ints into queue */
-	for (i=0; i<NUMS; ++i) {
+	for (i = 0; i < NUMS; ++i) {
 		pushed_value = malloc(sizeof(int));
 		*pushed_value = i;
 		if (tlock_push(queue, pushed_value) != TLOCK_OK ) {
@@ -32,63 +35,68 @@ int pop_thread(void* queue_ptr) {
 
 	/* Read values from queue. Break loop on -1 */
 	while(1) {
-		if ( (popped_value = tlock_pop(queue)) != NULL ) {
+		popped_value = tlock_pop(queue);
+		if (!popped_value)
+			continue;
 
-			if (*popped_value == -1) {
-				free(popped_value);
-				break;
-			}
-
+		if (*popped_value == -1) {
 			free(popped_value);
+			break;
 		}
+
+		free(popped_value);
 	}
 
 	thrd_exit(0);
 }
 
 int main() {
-	int i;					/* for loop index */
-	thrd_t push_threads[NUM_PUSH_THREADS];	/* array of push threads */
-	thrd_t pop_threads[NUM_POP_THREADS];	/* array of pop threads */
-	int* kill_signal;			/* pointer to value that signals pop threads to exit */
+	int rc;
+	unsigned int i;
+	thrd_t push_threads[NUM_PUSH_THREADS];
+	thrd_t pop_threads[NUM_POP_THREADS];
+	int* kill_signal;
 
 	/* Init queue */
 	tlock_queue_t* queue = tlock_init();
 
 	/* Start push threads */
-	for (i=0; i<NUM_PUSH_THREADS; ++i) {
-		if ( thrd_create(&push_threads[i], push_thread, queue) != thrd_success ) {
-			printf("Error creating push thread %i\n", i);
-		}
+	for (i = 0; i < ARR_SIZE(push_threads); ++i) {
+		rc = thrd_create(&push_threads[i], push_thread, queue);
+		if (rc != thrd_success)
+			err(EXIT_FAILURE, "thrd_create(): push_threads[%i]", i);
 	}
 
 	/* Start pop threads */
-	for (i=0; i<NUM_POP_THREADS; ++i) {
-		if ( thrd_create(&pop_threads[i], pop_thread, queue) != thrd_success ) {
-			printf("Error creating pop thread %i\n", i);
-		}
+	for (i = 0; i < ARR_SIZE(pop_threads); ++i) {
+		rc = thrd_create(&pop_threads[i], pop_thread, queue);
+		if (rc != thrd_success)
+			err(EXIT_FAILURE, "thrd_create(): pop_threads[%i]", i);
 	}
 
 	/* Join push threads */
-	for (i=0; i<NUM_PUSH_THREADS; ++i) {
-		if ( thrd_join(push_threads[i], NULL) != thrd_success )
-			continue;
+	for (i = 0; i < ARR_SIZE(push_threads); ++i) {
+		rc = thrd_join(push_threads[i], NULL);
+		if (rc != thrd_success)
+			warn("thrd_join(): push_threads[%i]", i);
 	}
 
 	/* Push kill signals */
-	for (i=0; i<NUM_POP_THREADS; ++i) {
+	for (i = 0; i < ARR_SIZE(pop_threads); ++i) {
 		kill_signal = malloc(sizeof(int));
+		if (!kill_signal)
+			err(EXIT_FAILURE, "malloc");
 		*kill_signal = -1;
 		tlock_push(queue, kill_signal);
 	}
 
 	/* Join pop threads */
-	for (i=0; i<NUM_POP_THREADS; ++i) {
-		if ( thrd_join(pop_threads[i], NULL) != thrd_success )
-			continue;
+	for (i = 0; i < ARR_SIZE(pop_threads); ++i) {
+		rc = thrd_join(pop_threads[i], NULL);
+		if (rc != thrd_success)
+			warn("thrd_join(): pop_threads[%i]", i);
 	}
 
-	/* Free queue resources */
 	tlock_free(queue);
 	return 0;
 }

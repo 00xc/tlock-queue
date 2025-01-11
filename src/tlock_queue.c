@@ -12,13 +12,11 @@ __attribute__ ((malloc))
 inline static _tlock_node_t* _tlock_node_init(void* value) {
 	_tlock_node_t* node;
 
-	if ( (node = malloc(sizeof(_tlock_node_t))) == NULL ) {
+	node = calloc(1, sizeof(*node));
+	if (!node)
 		return NULL;
-	}
 
 	node->value = value;
-	node->next = NULL;
-
 	return node;
 }
 
@@ -48,7 +46,7 @@ tlock_queue_t* tlock_init() {
 
 	/* Allocate dummy node */
 	dummy = _tlock_node_init(NULL);
-	if (dummy == NULL)
+	if (!dummy)
 		goto err3;
 
 	/* Initialize ends of queue */
@@ -67,14 +65,11 @@ err0:
 
 /* Frees queue resources. Assumes the queue is depleted */
 void tlock_free(tlock_queue_t* queue) {
-	if (queue == NULL) {
+	if (!queue)
 		return;
-	}
 
-	/* Free the dummy node */
-	if (queue->first != NULL) {
+	if (queue->first)
 		free(queue->first);
-	}
 
 	mtx_destroy(&queue->first_mutex);
 	mtx_destroy(&queue->last_mutex);
@@ -90,9 +85,9 @@ int tlock_push(tlock_queue_t* restrict queue, void* restrict new_element) {
 	_tlock_node_t* node;
 
 	/* Prepare new node */
-	if ( (node = _tlock_node_init(new_element)) == NULL ) {
+	node = _tlock_node_init(new_element);
+	if (!node)
 		return TLOCK_ERROR;
-	}
 
 	/* Add to queue with lock */
 	mtx_lock(&queue->last_mutex);
@@ -105,9 +100,12 @@ int tlock_push(tlock_queue_t* restrict queue, void* restrict new_element) {
 
 /* Pop from beginning of queue */
 void* tlock_pop(tlock_queue_t* queue) {
-	_tlock_node_t* node;		/* Node to be removed */
-	_tlock_node_t* new_header;	/* Node that will become the first in the queue */
-	void* return_value;		/* Data to be retrieved */
+	/* Node to be removed */
+	_tlock_node_t* node;
+	/* New queue head */
+	_tlock_node_t* new_header;
+	/* Data to be retrieved */
+	void* return_value;
 
 	mtx_lock(&queue->first_mutex);
 	
@@ -115,7 +113,7 @@ void* tlock_pop(tlock_queue_t* queue) {
 	new_header = queue->first->next;
 
 	/* Queue is empty */
-	if (new_header == NULL) {
+	if (!new_header) {
 		mtx_unlock(&queue->first_mutex);
 		return NULL;
 	}
@@ -142,12 +140,12 @@ size_t tlock_min_size(tlock_queue_t* queue) {
 	mtx_lock(&queue->first_mutex);
 
 	/* Get first element if queue is not empty */
-	if ( (node = queue->first->next) != NULL ) {
+	node = queue->first->next;
+	if (node)
 		++counter;
-	}
 
 	/* Count the rest of elements */
-	while (node != NULL && node->next != NULL) {
+	while (node && node->next) {
 		++counter;
 		node = node->next;
 	}
