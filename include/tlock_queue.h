@@ -22,8 +22,8 @@ typedef struct {
 typedef struct {
 	_tlock_node_t* first;
 	_tlock_node_t* last;
-	mtx_t* first_mutex;
-	mtx_t* last_mutex;
+	mtx_t first_mutex;
+	mtx_t last_mutex;
 } tlock_queue_t;
 
 /* Returns a pointer to an allocated struct for the synchronized queue or NULL on failure. */
@@ -54,6 +54,6 @@ void* tlock_pop(tlock_queue_t*);
  * the function call, but may be bigger if other threads were adding elements concurrently.
  * Consequently, this function will block pop calls from other threads, but not push calls.
  */
-size_t tlock_min_size(const tlock_queue_t*);
+size_t tlock_min_size(tlock_queue_t*);
 
 #endif
