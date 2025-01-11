@@ -15,10 +15,8 @@ inline static _tlock_node_t* _tlock_node_init(void* value) {
 	_tlock_node_t* node;
 
 	node = calloc(1, sizeof(*node));
-	if (!node)
-		return NULL;
-
-	node->value = value;
+	if (node)
+		node->value = value;
 	return node;
 }
 
