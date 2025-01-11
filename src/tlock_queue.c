@@ -52,13 +52,20 @@ err0:
 	return TLOCK_ERROR;
 }
 
-/* Frees queue resources. Assumes the queue is depleted */
+/* Frees queue resources */
 void tlock_free(tlock_queue_t* queue) {
+	_tlock_node_t* node;
+	_tlock_node_t* prev;
+
 	if (!queue)
 		return;
 
-	if (queue->first)
-		free(queue->first);
+	node = queue->first;
+	while (node) {
+		prev = node;
+		node = prev->next;
+		_tlock_node_free(prev);
+	}
 
 	mtx_destroy(&queue->first_mutex);
 	mtx_destroy(&queue->last_mutex);

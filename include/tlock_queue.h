@@ -33,9 +33,7 @@ typedef struct {
 int tlock_init(tlock_queue_t*);
 
 /*
- * Frees the queue struct. It assumes that the queue is depleted, and it will not manage allocated
- * elements inside of it.
- */
+ * Frees the queue resources */
 void tlock_free(tlock_queue_t*);
 
 /*
